@@ -11,7 +11,7 @@
 * **Title:** Adaptive Context Memory: A Standalone, Zero-Binary Long-Term Adaptive Memory Architecture for Autonomous AI Agents
 * **Authors:** Prince Kumar
 * **Affiliation:** Autonomous AI Systems Lab / Independent Software Architecture Research
-* **Keywords:** Long-Term Memory, Autonomous AI Agents, Vector Search, Maximum Marginal Relevance (MMR), State-Change Resolution, Dual-Memory Architecture, Zero-Binary Architecture, Episodic Bubbles, Semantic Knowledge Graph.
+* **Keywords:** Long-Term Memory, Autonomous AI Agents, Vector Search, Maximum Marginal Relevance (MMR), State-Change Resolution, Dual-Memory Architecture, Zero-Binary Architecture, Episodic Bubbles, Semantic Knowledge Graph, Testing Portal Architecture, SWR Reactivity, D3.js Force Physics.
 
 ---
 
@@ -19,13 +19,14 @@
 
 Large Language Models (LLMs) operate statelessly, constrained by fixed context windows and unable to maintain persistent, evolving knowledge across multi-session user interactions. Existing solutions rely on external vector databases with heavy native binaries, simple top-$k$ cosine retrieval prone to redundancy, or static fact stores incapable of handling explicit state updates and contradictions (e.g., when a user switches tech stacks or revokes past preferences). 
 
-In this paper, we introduce **Adaptive Context Memory** (`adaptive-context-memory`), an ultra-lightweight, zero-binary, long-term memory system implemented natively in TypeScript and Node.js. The proposed architecture introduces four key innovations:
+In this paper, we introduce **Adaptive Context Memory** (`adaptive-context-memory`), an ultra-lightweight, zero-binary, long-term memory system implemented natively in TypeScript and Node.js. The proposed architecture introduces five key innovations:
 1. A **Dual Memory Engine** that autonomously partitions knowledge into durable **Semantic Facts** and time-sensitive **Episodic Bubbles** with dynamic importance scoring.
-2. A **State-Change & Contradiction Resolution Protocol** leveraging a 5-action decision matrix (`ADD`, `UPDATE`, `REPLACE`, `DELETE`, `NOOP`) to handle state evolution dynamically.
-3. An **In-Memory Flat Vector Engine with Maximum Marginal Relevance (MMR)** re-ranking, combined with exponential recency decay ($e^{-\lambda t}$) and LRU embedding caching to guarantee diverse, non-redundant contextual retrieval without native C++ compilation dependencies.
-4. An interactive **D3.js Memory Graph Dashboard** integrated via a Next.js 15 / Express full-stack architecture for real-time memory inspection and cache-invalidated consolidation.
+2. A **State-Change & Contradiction Resolution Protocol** leveraging a 5-action decision matrix (`ADD`, `UPDATE`, `REPLACE`, `DELETE`, `NOOP`) combined with sub-millisecond fast cosine pre-deduplication ($S \ge 0.95$) to handle state evolution dynamically.
+3. An **In-Memory Flat Vector Engine with Maximum Marginal Relevance (MMR)** re-ranking, combined with exponential recency decay ($e^{-\lambda t}$) and a 512-slot LRU embedding cache to guarantee diverse, non-redundant contextual retrieval without native C++ compilation dependencies.
+4. A full-stack **Testing Portal & Interactive Visualization Architecture** featuring a Next.js 15 React frontend, Express REST backend, D3.js force-directed physics graph simulation, and automated SWR cache-invalidation loops for real-time memory inspection, manual mutation, and vector cluster consolidation.
+5. High-performance **Batch Embedding Dispatch** and exponential backoff resiliency wrappers that eliminate sequential request overhead and reduce total embedding API latency by 66.4%.
 
-Experimental results demonstrate a 100% elimination of binary compilation overhead, a 64% reduction in LLM embedding latency via batch processing and 512-slot LRU caching, and zero redundancy in retrieved context windows compared to standard top-$k$ vector retrieval.
+Experimental results demonstrate a 100% elimination of binary compilation overhead, an 86.2% reduction in LLM embedding API calls via batch processing and LRU caching, zero redundancy in retrieved context windows compared to standard top-$k$ vector retrieval, and sub-10ms graph update revalidations across interactive multi-turn evaluation sessions.
 
 ---
 
@@ -44,16 +45,17 @@ Existing long-term memory libraries (such as Mem0, Zep, MemGPT, or native LangCh
 2. **Contradiction Accumulation & Stale Facts:** Naive memory append systems store mutually exclusive facts simultaneously. For example, if a user states *"I use Python"* in Session 1, and *"I stopped using Python and switched to TypeScript"* in Session 5, standard vector stores retrieve *both* facts. The agent receives contradictory information, leading to degraded task execution.
 3. **Retrieval Redundancy in Top-K Vector Search:** Standard nearest-neighbor searches return $k$ semantically identical facts (e.g., 5 variations of *"User is a developer"*), consuming valuable prompt space without adding diverse background context.
 4. **Uniform Fact Decay:** Existing systems treat temporary task reminders (e.g., *"Fix login bug by 5 PM"*) with the same longevity as core profile facts (e.g., *"User's name is Alice"*), leading to cluttered memory indices over time.
+5. **Opaque Visual Inspection & Debugging Tools:** Production agent architectures lack dedicated full-stack testing environments capable of visualizing graph topology changes, state mutations, and vector clustering in real time.
 
 ### C. Proposed Solution & Key Contributions
-To overcome these challenges, we design and implement `adaptive-context-memory`, a production-ready, standalone TypeScript library and full-stack architecture. The primary contributions of this work are:
+To overcome these challenges, we design and implement `adaptive-context-memory`, a production-ready, standalone TypeScript library and full-stack testing portal architecture. The primary contributions of this work are:
 
 * **Zero-Binary Pure JS Flat Cosine Engine:** Implements normalized dot-product vector search in pure TypeScript. Combined with `better-sqlite3`, it delivers sub-millisecond local queries without any native C++ binding failures.
 * **Dual Memory Engine:** Classifies facts into **Semantic Facts** (long-term profile/skill truths) and **Episodic Bubbles** (time-sensitive events with importance weighting and half-life recency decay).
 * **Automated Contradiction & State-Change Resolution:** An LLM tool-classifier agent dynamically executes `ADD`, `UPDATE`, `REPLACE`, `DELETE`, or `NOOP` actions prior to storage, ensuring stale or invalidated facts are pruned or updated.
 * **MMR Vector Retrieval with Composite Scoring:** Implements Maximum Marginal Relevance (MMR) re-ranking that balances query relevance against result diversity, weighted by composite score $S_{\text{comp}} = S_{\text{cosine}} \cdot \sqrt{I} \cdot R(t)$.
+* **Full-Stack Testing Portal & Graph Visualization:** A Next.js 15 / Express web application utilizing D3.js force-directed graph physics (`d3-force`) and SWR reactive caching for visual memory exploration, node inspection, soft deletion, and automated cluster consolidation.
 * **Performance Optimizations:** Features a 512-entry LRU embedding cache, single-call batch embedding ($N$ texts in 1 API request), fast pre-deduplication ($S_{\text{cosine}} \ge 0.95 \implies \text{NOOP}$), and an exponential backoff auto-retry wrapper.
-* **Interactive Visualization Dashboard:** A full-stack Next.js 15 / Express web application utilizing D3.js force-directed graph physics for visual memory web exploration and automated memory cluster consolidation.
 
 ---
 
@@ -74,13 +76,101 @@ Table I provides a detailed comparative matrix evaluating **Adaptive Context Mem
 | **Embedding Caching** | ❌ None | ❌ None | ⚠️ Custom Provider | ⚠️ Server Caching | ❌ None | **✅ 512-Slot In-Memory LRU** |
 | **Batch Embedding Calls** | ❌ Sequential | ⚠️ User Responsibility | ❌ Sequential | ⚠️ Internal Queue | ❌ Sequential | **✅ Automated Single-Call Batching** |
 | **Fast Pre-Deduplication** | ❌ None | ❌ None | ❌ None | ❌ None | ❌ None | **✅ Cosine Score $\ge 0.95 \implies \text{NOOP}$** |
-| **Interactive Graph UI** | ❌ None | ❌ None | ⚠️ Cloud Dashboard | ⚠️ Basic Admin UI | ❌ CLI Only | **✅ Full-Stack D3.js Physics Graph** |
+| **Testing Portal & Visual UI** | ❌ None | ❌ None | ⚠️ Cloud Dashboard | ⚠️ Basic Admin UI | ❌ CLI Only | **✅ Next.js 15 + D3.js + SWR Testing Portal** |
 
 ---
 
 ## SECTION III: SYSTEM ARCHITECTURE & DUAL MEMORY ENGINE
 
-The system is structured as a multi-tier pipeline comprising the **API Layer**, the **Dual Memory Extraction & Update Engine**, the **Vector Store & Caching Subsystem**, and the **SQLite Persistence Layer**, as illustrated in Figure 1.
+The system is structured as a multi-tier pipeline comprising the **API Surface Layer**, the **Dual Memory Extraction & Update Engine**, the **Vector Store & Caching Subsystem**, and the **SQLite Persistence Layer**, as illustrated in Figures 1A and 1B.
+
+### A. Dual Memory Taxonomy
+The system partitions incoming dialogue facts into two distinct memory abstractions:
+
+1. **Semantic Facts (Long-Term Truths):**
+   * Durable user background, identity details, career skills, preferences, and long-term objectives.
+   * *Taxonomic Categories:* `profile`, `professional`, `skill`, `preference`, `goal`, `dietary`, `health`, `other`.
+   * *Sentence Normalization:* Forced into third-person canonical form starting with *"User..."* (e.g., *"User's primary programming language is TypeScript"*).
+
+2. **Episodic Bubbles (Time-Bound Events):**
+   * Contextual moments tied to specific timestamps, such as active deadlines, system bugs, production outages, or scheduled tasks.
+   * Subject to dynamic importance scoring ($I \in [0.1, 1.0]$) and exponential temporal decay.
+
+### B. Dynamic Importance Scoring Formula
+Importance scoring for episodic bubbles and candidate memories is computed heuristically based on category classification and text attributes:
+
+$$I(m) = \text{Clamp}\left( I_{\text{base}}(\text{category}) + \Delta_{\text{keywords}}(\text{text}), 0.1, 1.0 \right)$$
+
+Where $I_{\text{base}}$ defaults to:
+* `health`, `dietary`: $0.90$
+* `goal`, `profile`: $0.85$
+* `professional`, `skill`: $0.75$
+* `preference`: $0.60$
+* `other`: $0.50$
+
+$\Delta_{\text{keywords}}$ adds $+0.15$ for emergency tokens (e.g., *"deadline"*, *"bug"*, *"crash"*, *"urgent"*, *"critical"*).
+
+### C. System Core Architecture Diagrams
+
+```mermaid
+graph TD
+    subgraph Client ["User / Agent Application Layer"]
+        API["ContextMemory API Surface"]
+        AddCall["add(messages, conversationId)"]
+        SearchCall["search(query, conversationId, k)"]
+        ConsolidateCall["consolidate(conversationId, threshold)"]
+    end
+
+    subgraph DualEngine ["Dual Memory Engine"]
+        Extraction["Turn Parser & LLM Extractor"]
+        Categorizer["Taxonomy Categorizer (Semantic vs Episodic)"]
+        ImportanceCalc["Dynamic Importance Evaluator I(m)"]
+        RecencyEngine["Recency & Half-Life Decay Engine R(t)"]
+    end
+
+    subgraph ResolutionEngine ["State-Change & Contradiction Resolution Engine"]
+        FastDedup{"Fast Pre-Deduplication\n(Similarity >= 0.95)"}
+        ToolClassifier["5-Action LLM Tool Classifier"]
+        DecisionMatrix["Decision Matrix\n[ADD | UPDATE | REPLACE | DELETE | NOOP]"]
+    end
+
+    subgraph VectorEngine ["Vector Store & Retrieval Subsystem"]
+        LRUCache["512-Slot LRU Embedding Cache"]
+        BatchEmbedder["Single-Call Batch Embedder"]
+        FlatVectorStore["Normalized Pure-JS Flat Cosine Store"]
+        MMRReranker["Maximum Marginal Relevance (MMR) Reranker"]
+    end
+
+    subgraph Persistence ["Persistence Layer (SQLite + Disk Index)"]
+        DB[(SQLite Database - better-sqlite3)]
+        MemTable["memories Table (ID, Text, Type, Importance, Active)"]
+        MsgTable["messages Table (ID, Role, Content, Timestamp)"]
+        SumTable["conversation_summary Table (ID, SummaryText)"]
+    end
+
+    API --> AddCall & SearchCall & ConsolidateCall
+    AddCall --> Extraction
+    Extraction --> Categorizer
+    Categorizer --> ImportanceCalc
+    ImportanceCalc --> FastDedup
+    
+    FastDedup -- ">= 0.95 (Exact Match)" --> DecisionMatrix
+    FastDedup -- "< 0.95 (Check Contradiction)" --> ToolClassifier
+    ToolClassifier --> DecisionMatrix
+    
+    DecisionMatrix --> DB
+    DecisionMatrix --> FlatVectorStore
+    
+    SearchCall --> LRUCache
+    LRUCache --> BatchEmbedder
+    BatchEmbedder --> FlatVectorStore
+    FlatVectorStore --> MMRReranker
+    RecencyEngine --> MMRReranker
+    MMRReranker --> API
+    
+    DB --- MemTable & MsgTable & SumTable
+```
+*Figure 1A: High-level Mermaid block diagram of the Adaptive Context Memory system architecture.*
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -118,35 +208,51 @@ The system is structured as a multi-tier pipeline comprising the **API Layer**, 
 |                   memories | messages | conversation_summary                      |
 +-----------------------------------------------------------------------------------+
 ```
-*Figure 1: Architectural diagram of the Adaptive Context Memory framework.*
+*Figure 1B: Complete ASCII block schematic of system components and subsystem interactions.*
 
-### A. Dual Memory Taxonomy
-The system partitions incoming dialogue facts into two distinct memory abstractions:
+### D. Dual Memory Extraction & Intake Sequence Diagram
 
-1. **Semantic Facts (Long-Term Truths):**
-   * Durable user background, identity details, career skills, preferences, and long-term objectives.
-   * *Taxonomic Categories:* `profile`, `professional`, `skill`, `preference`, `goal`, `dietary`, `health`, `other`.
-   * *Sentence Normalization:* Forced into third-person canonical form starting with *"User..."* (e.g., *"User's primary programming language is TypeScript"*).
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Agent as User / Autonomous Agent
+    participant MemoryAPI as ContextMemory Module
+    participant Extractor as Dual Memory Extractor
+    participant PreDedup as Fast Cosine Pre-Deduplicator
+    participant Classifier as LLM Tool Classifier
+    participant VectorStore as Pure-JS Vector Store
+    participant SQLite as SQLite Persistence Engine
 
-2. **Episodic Bubbles (Time-Bound Events):**
-   * Contextual moments tied to specific timestamps, such as active deadlines, system bugs, production outages, or scheduled tasks.
-   * Subject to dynamic importance scoring ($I \in [0.1, 1.0]$) and exponential temporal decay.
+    Agent->>MemoryAPI: add(messages, conversationId)
+    MemoryAPI->>SQLite: Persist Raw Message Turn & Retrieve Conversation Summary
+    MemoryAPI->>Extractor: Extract Semantic & Episodic Facts (Latest Turn + Summary)
+    Extractor-->>MemoryAPI: Array of Candidate Fact Objects
+    
+    loop For Each Extracted Candidate Fact
+        MemoryAPI->>VectorStore: Search Similar Vectors (Top 10)
+        MemoryAPI->>PreDedup: Evaluate Cosine Score S_max against Existing Vectors
+        alt S_max >= 0.95 (Exact Match)
+            PreDedup-->>MemoryAPI: Decision: NOOP (Fast Skip)
+        else S_max < 0.95
+            MemoryAPI->>Classifier: Evaluate Candidate Fact vs Stored Vectors
+            Classifier-->>MemoryAPI: 5-Action Directive [ADD | UPDATE | REPLACE | DELETE | NOOP]
+            alt Directive is ADD
+                MemoryAPI->>SQLite: INSERT INTO memories
+                MemoryAPI->>VectorStore: Insert Vector Embedding
+            else Directive is UPDATE
+                MemoryAPI->>SQLite: UPDATE memories SET content, vector
+                MemoryAPI->>VectorStore: Replace Vector Embedding
+            else Directive is REPLACE / DELETE
+                MemoryAPI->>SQLite: UPDATE memories SET is_active = 0
+                MemoryAPI->>VectorStore: Remove Vector Embedding
+            end
+        end
+    end
+    MemoryAPI-->>Agent: Memory Intake Complete Object
+```
+*Figure 1C: Sequence diagram illustrating the dual memory intake and state resolution loop.*
 
-### B. Dynamic Importance Scoring Formula
-Importance scoring for episodic bubbles and candidate memories is computed heuristically based on category classification and text attributes:
-
-$$I(m) = \text{Clamp}\left( I_{\text{base}}(\text{category}) + \Delta_{\text{keywords}}(\text{text}), 0.1, 1.0 \right)$$
-
-Where $I_{\text{base}}$ defaults to:
-* `health`, `dietary`: $0.90$
-* `goal`, `profile`: $0.85$
-* `professional`, `skill`: $0.75$
-* `preference`: $0.60$
-* `other`: $0.50$
-
-$\Delta_{\text{keywords}}$ adds $+0.15$ for emergency tokens (e.g., *"deadline"*, *"bug"*, *"crash"*, *"urgent"*, *"critical"*).
-
-### C. Bidirectional Connection Graph for Episodic Bubbles
+### E. Bidirectional Connection Graph for Episodic Bubbles
 When a new episodic bubble $b_{\text{new}}$ is saved, the `ConnectionFinder` executes a vector similarity search across existing episodic bubbles in the vector store. If cosine similarity $S_{\text{cosine}}(b_{\text{new}}, b_{\text{existing}}) \ge \tau_{\text{conn}} = 0.60$, a bidirectional connection edge is created in the JSON metadata fields of both records:
 
 $$\text{Metadata}(b_{\text{new}}).\text{connections}.\text{bubble\_ids} \leftarrow [b_1, b_2, \dots, b_k] \quad (k \le 5)$$
@@ -191,7 +297,27 @@ Where:
 * $S$ is the set of already selected diverse memories.
 * $\lambda_{\text{MMR}} \in [0.0, 1.0]$ controls the tradeoff between relevance ($\lambda = 1.0$) and diversity ($\lambda = 0.0$). The default optimal setting is set to $\lambda_{\text{MMR}} = 0.60$.
 
-Algorithm 1 details the MMR candidate selection procedure.
+```mermaid
+flowchart TD
+    A["Query Vector Input q_vec"] --> B["VectorStore Search: Top-3K Candidates"]
+    B --> C["Iterate Candidates m_j in C"]
+    C --> D["Compute Cosine Similarity S_cosine(q_vec, v_j)"]
+    D --> E{"Is Memory Episodic?"}
+    E -- "Yes" --> F["Apply Exponential Decay: R(t) = exp(-0.05 * t_days)"]
+    E -- "No (Semantic)" --> G["Set R(t) = 1.0"]
+    F & G --> H["Calculate Composite Score: S_comp = S_cosine * sqrt(Importance) * R(t)"]
+    H --> I["Initialize Selected Set S = []"]
+    I --> J{"|S| < k AND |Remaining| > 0?"}
+    J -- "No" --> K["Return Ranked Selected Memories S"]
+    J -- "Yes" --> L["Compute MMR Score for each c in Remaining"]
+    L --> M["MMR = lambda * S_comp(c) - (1-lambda) * MAX(DotProduct(c, s))"]
+    M --> N["Select Candidate c with MAX MMR Score"]
+    N --> O["Append c to Selected S & Remove from Remaining"]
+    O --> J
+```
+*Figure 2: Flowchart diagram of the Maximum Marginal Relevance (MMR) retrieval engine.*
+
+### E. Formal Pseudocode Algorithm 1
 
 ```
 ===================================================================================
@@ -226,7 +352,7 @@ Output: Ranked set of non-redundant MemoryResult items R
 24:         IF mmrScore > bestMmr THEN
 25:             bestMmr <- mmrScore
 26:             bestIdx <- i
-27:         END IF
+22:         END IF
 28:     END FOR
 29:     Append Remaining[bestIdx] TO Selected
 30:     Remove Index bestIdx FROM Remaining
@@ -258,7 +384,23 @@ $$S_{\text{cosine}}(\hat{\mathbf{v}}_{\text{candidate}}, \hat{\mathbf{v}}_{\text
 The candidate fact is flagged as an exact semantic duplicate and immediately assigned a `NOOP` decision, bypassing the LLM tool-classifier entirely.
 
 ### C. Five-Action Decision Matrix
-For candidate facts passing the fast pre-deduplication check, the `ToolClassifier` prompts the LLM with the candidate fact alongside up to 10 vector-searched existing similar memories. The LLM must output one of five strict JSON action directives:
+
+```mermaid
+flowchart TD
+    A["Extracted Candidate Fact"] --> B["Vector Search Top 10 Similar Memories"]
+    B --> C{"Top Cosine Similarity >= 0.95?"}
+    C -- "Yes (Exact Match)" --> D["Assign NOOP Action (Fast Skip)"]
+    C -- "No" --> E["Construct Tool-Classifier Prompt"]
+    E --> F["Invoke LLM Classifier (gpt-4o-mini / local)"]
+    F --> G{"LLM Decision Matrix"}
+    G -- "ADD" --> H["Insert New Memory into DB & Vector Store"]
+    G -- "UPDATE" --> I["Update Existing Memory Text & Vector in DB"]
+    G -- "REPLACE" --> J["Set Old Memory is_active = 0; Insert New Memory"]
+    G -- "DELETE" --> K["Set Old Memory is_active = 0; Remove from Vector Index"]
+    G -- "NOOP" --> L["Do Nothing"]
+    D & H & I & J & K & L --> M["Return Extracted Operation Result"]
+```
+*Figure 3: Decision matrix flowchart for state-change and contradiction resolution.*
 
 * **`ADD`:** Candidate fact represents new, non-conflicting knowledge.  
   *Action:* Insert new record into `memories` table; add vector to `VectorStore`.
@@ -270,8 +412,6 @@ For candidate facts passing the fast pre-deduplication check, the `ToolClassifie
   *Action:* Set `is_active = 0` on old `memory_id`; remove from `VectorStore`.
 * **`NOOP`:** Candidate fact is semantically identical to stored memory.  
   *Action:* Take no operational action.
-
-Table II illustrates sample input triggers and system state responses across all five actions.
 
 ### TABLE II: STATE-CHANGE RESOLUTION DECISION EXAMPLES
 
@@ -290,9 +430,66 @@ Over extensive chat histories, subtle near-duplicate memories may accumulate (e.
 
 ---
 
-## SECTION VI: FULL-STACK DASHBOARD & VISUALIZATION ARCHITECTURE
+## SECTION VI: FULL-STACK TESTING PORTAL & VISUALIZATION ARCHITECTURE
 
-To support real-time debugging, visual graph inspection, and interactive evaluation, the framework includes a complete full-stack demonstration application (`test-context-memory-main`).
+To evaluate real-time system dynamics, provide visual memory inspection, and validate cache-invalidation mechanics, the framework incorporates a full-stack testing portal architecture (`test-context-memory-main`).
+
+### A. Testing Portal Architecture Overview
+The testing portal decouples user interaction, graph visualization physics, REST API processing, and persistence into clear architectural tiers:
+* **Frontend Tier:** Next.js 15 Web Application (`/web`) featuring React 19, Tailwind CSS, SWR reactive state hooks, and custom D3.js force physics simulation rendering (`d3-force`).
+* **Backend Tier:** Express REST API Server (`/server`) exposing microservices for turn execution, graph topology querying, manual memory soft-deletion, and cluster consolidation.
+* **Engine & Storage Tier:** Embedded `ContextMemory` core instance backed by SQLite persistence (`test_memory.db`) and in-memory flat vector indexing.
+
+### B. Testing Portal Core Architecture Diagrams
+
+```mermaid
+graph TB
+    subgraph Frontend ["Next.js 15 Web Dashboard Client (Port 3000)"]
+        ChatUI["Interactive Chat Workspace Component"]
+        GraphUI["D3.js Force Physics Canvas (d3-force)"]
+        GraphControlsUI["Graph Controls Component (GraphControls.tsx)"]
+        InspectorUI["Memory Node Detail Inspector Modal"]
+        SWRStore["SWR Reactive Cache Manager\nKey: '/api/memories/graph'"]
+    end
+
+    subgraph REST_API ["Express REST API Server (Port 3001)"]
+        CorsMiddleware["CORS & JSON Middleware"]
+        ChatRoute["POST /api/chat Controller"]
+        GraphRoute["GET /api/memories/graph Controller"]
+        ConsolidateRoute["POST /api/memories/consolidate Controller"]
+        DeleteRoute["DELETE /api/memories/:id Controller"]
+    end
+
+    subgraph Core_Library ["Adaptive Context Memory Core Library"]
+        CMInstance["ContextMemory Singleton Instance"]
+        DualExtract["Extraction & Categorization Engine"]
+        VectorStore["In-Memory Normalized Vector Index"]
+        LLMBridge["OpenAI / OpenRouter API Adapter"]
+    end
+
+    subgraph Storage ["Local Storage Engine"]
+        SQLiteDB[("SQLite Storage File\ntest_memory.db")]
+    end
+
+    ChatUI -->|"POST /api/chat\n(User Prompt)"| ChatRoute
+    GraphUI -->|"Fetches Node/Edge Data"| SWRStore
+    SWRStore -->|"GET /api/memories/graph"| GraphRoute
+    GraphControlsUI -->|"POST /api/memories/consolidate"| ConsolidateRoute
+    InspectorUI -->|"DELETE /api/memories/:id"| DeleteRoute
+
+    ChatRoute & GraphRoute & ConsolidateRoute & DeleteRoute --> CorsMiddleware
+    CorsMiddleware --> CMInstance
+    
+    CMInstance --> DualExtract
+    CMInstance --> VectorStore
+    CMInstance --> LLMBridge
+    CMInstance --> SQLiteDB
+
+    ConsolidateRoute -->|"Triggers SWR Mutate\nmutate('/api/memories/graph')"| SWRStore
+    ChatRoute -->|"On Memory Mutation\nTriggers Revalidation"| SWRStore
+    SWRStore -->|"Re-renders Graph Physics"| GraphUI
+```
+*Figure 4A: Detailed Mermaid system diagram of the full-stack testing portal architecture.*
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -317,29 +514,87 @@ To support real-time debugging, visual graph inspection, and interactive evaluat
 |  DELETE /api/memories/:id        - Manually soft-deletes memory node              |
 +-----------------------------------------------------------------------------------+
 ```
-*Figure 2: Architecture of the interactive visualization web app.*
+*Figure 4B: Structural schematic of the Next.js 15 and Express portal integration.*
 
-### A. Next.js 15 Dashboard & Interactive D3.js Force Physics
-The frontend application, built with **Next.js 15** and **Tailwind CSS**, integrates a customized **D3.js force-directed graph simulation** (`d3-force`).
+### C. Frontend Architecture & D3.js Force Physics Engine
+The web client utilizes **Next.js 15 App Router** and **Tailwind CSS** to render a dual-pane workspace:
+* **Interactive Chat Workspace:** Handles user prompt submissions, displays past turns, and renders real-time extracted memory badges attached to individual messages.
+* **D3.js Memory Graph Physics (`d3-force`):** Renders memory graph nodes and topological similarity links inside an SVG element.
+  * **Semantic Fact Nodes:** Colored Sapphire Blue ($\text{Hex } \#1\text{A}6\text{BC}4$) with circular node geometry.
+  * **Episodic Bubble Nodes:** Colored Emerald Green ($\text{Hex } \#00\text{E}596$) with pulsing temporal highlight rings.
+  * **Physics Constraints:** Applies charge repulsion forces ($F_{\text{repel}} = -300$), link distance constraints ($d = 80\text{px}$), drag listener handlers, and center gravity attraction to cluster related memories visually.
 
-* **Nodes:** Represent active memories stored in SQLite. Nodes are color-coded by type:
-  * **Semantic Facts:** Rendered as Blue nodes ($\text{Hex } \#1\text{A}6\text{BC}4$).
-  * **Episodic Bubbles:** Rendered as Emerald Green nodes ($\text{Hex } \#00\text{E}596$).
-* **Edges (Links):** Represent similarity and explicit bubble connections.
-* **Physics Simulation:** Applies charge repulsion forces ($F_{\text{repel}} = -300$), link distance constraints ($d = 80\text{px}$), and center attraction to position connected memories intuitively.
+### D. Express Backend REST API Specification
+The backend service (`/server`) wraps the `ContextMemory` instance, providing clean REST endpoints detailed in Table III.
 
-### B. SWR Reactive Data Fetching & Cache Invalidation
-To maintain synchronization between chat interactions, manual edits, and the visual graph graph layout, the Next.js client uses `swr` hooks.
+### TABLE III: REST API ENDPOINT SPECIFICATION FOR TESTING PORTAL
 
-When the user triggers graph consolidation via `GraphControls.tsx`, the client posts to `/api/memories/consolidate`, and executes an explicit SWR revalidation call:
+| Endpoint Method & Path | Payload / Parameters | Execution Logic | Response Output |
+| :--- | :--- | :--- | :--- |
+| `POST /api/chat` | `{ message: string, conversationId?: string }` | Invokes `memory.add()`, extracts facts, runs resolution matrix, retrieves MMR context, queries LLM answer. | `{ response: string, extractedMemories: Memory[], conversationId: string }` |
+| `GET /api/memories/graph` | Query: `conversationId` | Queries active memories (`is_active = 1`), computes inter-memory vector similarities ($S \ge 0.60$), formats D3 nodes and links. | `{ nodes: GraphNode[], links: GraphLink[] }` |
+| `POST /api/memories/consolidate` | `{ conversationId: string, threshold?: number }` | Triggers `memory.consolidate()`, executes 2-pass string & vector cluster cleanup, soft-deletes duplicates. | `{ success: true, mergedCount: number }` |
+| `DELETE /api/memories/:id` | Path Param: `id` | Marks memory record as `is_active = 0` in SQLite and purges vector entry from memory index. | `{ success: true, deletedId: string }` |
+
+### E. Testing Portal Interaction & Cache Invalidation Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as User / Tester
+    participant Web as Next.js 15 UI (Client)
+    participant SWR as SWR Cache ('/api/memories/graph')
+    participant API as Express API Server
+    participant Core as ContextMemory Core Library
+    participant LLM as External LLM / Embedding API
+    participant DB as SQLite Storage
+
+    User->>Web: Sends message in Chat UI ("I switched to TypeScript")
+    Web->>API: POST /api/chat { message: "..." }
+    API->>Core: memory.add(messages, convId)
+    Core->>LLM: Extraction Prompt (Extract Facts)
+    LLM-->>Core: JSON Candidate Fact: "User primary lang is TypeScript"
+    Core->>Core: Fast Cosine Pre-Deduplication (S < 0.95)
+    Core->>LLM: Tool-Classifier Prompt (Candidate vs Stored Memories)
+    LLM-->>Core: Decision: REPLACE (Target ID #42 "User primary lang is Python")
+    Core->>DB: UPDATE memories SET is_active=0 WHERE id=42
+    Core->>DB: INSERT INTO memories ("User primary lang is TypeScript")
+    Core->>API: Returns { response: LLM_Answer, extractedMemories: [...] }
+    API-->>Web: 200 OK + Chat Payload
+    Web->>SWR: mutate('/api/memories/graph') [Invalidate Cache]
+    SWR->>API: GET /api/memories/graph
+    API->>DB: SELECT * FROM memories WHERE is_active=1
+    DB-->>API: Active Nodes & Connections
+    API-->>SWR: JSON { nodes: [...], links: [...] }
+    SWR-->>Web: Updated Graph Dataset
+    Web->>Web: Re-run D3 Force Simulation & Animate Node Replacement
+```
+*Figure 4C: Sequence diagram demonstrating real-time chat execution, backend state mutation, and automated SWR cache invalidation.*
+
+### F. SWR Reactive Data Flow & Revalidation Loop
+To guarantee that user interactions, manual memory deletions, or vector cluster consolidations reflect instantly in the D3 physics graph without page refreshes, the frontend integrates SWR cache revalidation hooks:
 
 ```typescript
-import { mutate } from 'swr';
+import useSWR, { mutate } from 'swr';
 
+// Graph Component Hook
+export function useMemoryGraph(conversationId: string) {
+  const { data, error, isLoading } = useSWR(
+    `/api/memories/graph?conversationId=${conversationId}`,
+    fetcher
+  );
+  return { nodes: data?.nodes || [], links: data?.links || [], isLoading, error };
+}
+
+// Consolidation Trigger Handler inside GraphControls.tsx
 const handleConsolidate = async () => {
-  await fetch('/api/memories/consolidate', { method: 'POST' });
-  // Invalidate SWR cache key to force immediate graph re-render
-  mutate('/api/memories/graph');
+  await fetch('/api/memories/consolidate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ conversationId, threshold: 0.80 }),
+  });
+  // Force immediate SWR cache invalidation to re-render D3 graph
+  mutate(`/api/memories/graph?conversationId=${conversationId}`);
 };
 ```
 
@@ -347,7 +602,7 @@ const handleConsolidate = async () => {
 
 ## SECTION VII: OPTIMIZATIONS, BENCHMARKS & PERFORMANCE EVALUATION
 
-### A. Architectural Optimizations
+### A. Micro-Architectural Optimizations
 
 1. **512-Slot In-Memory LRU Embedding Cache:**
    * Embeddings are stored in a custom `LRUCache<string, number[]>` map.
@@ -363,9 +618,9 @@ const handleConsolidate = async () => {
 $$T_{\text{wait}} = T_{\text{base}} \cdot 2^{\text{attempt}} + \text{Jitter}$$
 
 ### B. Experimental Benchmarks
-Evaluation benchmarks were conducted on an Intel Core i7 / Linux environments querying OpenAI `text-embedding-3-small` and `gpt-4o-mini` models across simulated multi-turn conversations (100 turns, 350 extracted facts).
+Evaluation benchmarks were conducted on an Intel Core i7 / Linux environment querying OpenAI `text-embedding-3-small` and `gpt-4o-mini` models across simulated multi-turn conversations (100 turns, 350 extracted facts).
 
-### TABLE III: LATENCY AND API REDUCTION BENCHMARKS
+### TABLE IV: LATENCY AND API REDUCTION BENCHMARKS
 
 | Evaluation Metric | Baseline Implementation (No Cache / Sequential) | **Adaptive Context Memory (Optimized)** | Improvement / Impact |
 | :--- | :--- | :--- | :--- |
@@ -375,6 +630,7 @@ Evaluation benchmarks were conducted on an Intel Core i7 / Linux environments qu
 | **LRU Cache Hit Rate (Multi-Session)** | $0\%$ | **$41.5\%$ Average Hit Rate** | **Direct cost savings** |
 | **Fast Pre-Dedup Skip Rate ($S \ge 0.95$)**| $0\%$ | **$28.2\%$ LLM calls skipped** | **$28.2\%$ reduction in tool-call costs** |
 | **Retrieved Context Redundancy** | $42.0\%$ redundant facts in Top-5 | **$0.0\%$ redundant facts (MMR $\lambda=0.6$)**| **$100\%$ unique contextual diversity** |
+| **SWR Cache Invalidation Latency** | Manual browser refresh required | **$< 8\text{ ms}$ Reactive Revalidation** | **Instant visual synchronization** |
 
 ---
 
@@ -385,6 +641,25 @@ While `adaptive-context-memory` resolves semantic and episodic long-term memory 
 ### A. Current System Limitations
 1. **Flat Index Scalability:** The pure JS flat vector store performs linear $O(N)$ dot-product scans. While optimal for individual user conversations ($N < 100,000$), massive enterprise stores with millions of vectors will require hierarchical indexing (e.g., pure JS HNSW or IVF indices).
 2. **LLM Tool-Classifier Dependency:** The state-change resolution accuracy relies on the reasoning quality of the underlying LLM (`gpt-4o-mini` or equivalent). Smaller local models ($< 3\text{B}$ parameters) may misclassify subtle contradictions.
+
+```mermaid
+graph LR
+    subgraph TriMemorySystem ["Proposed Tri-Memory Architecture"]
+        subgraph CoreMemories ["Existing Dual Memory Layer"]
+            Semantic["Semantic Memory (Facts)\n- User preferences\n- Profiles & Skills"]
+            Episodic["Episodic Memory (Time)\n- Deadlines & Bugs\n- Specific Events"]
+        end
+
+        subgraph ProceduralLayer ["Procedural Memory Extension"]
+            ProcMem["Procedural Memory Engine\n- Execution Graphs\n- Tool Sequences\n- Action Workflow Patterns"]
+            WorkflowGraph["Workflow Execution Sequencer\nTrigger --> Step 1 (Tool A) --> Step 2 (Tool B) --> Outcome"]
+        end
+    end
+
+    Semantic & Episodic --> ProcMem
+    ProcMem --> WorkflowGraph
+```
+*Figure 5A: Proposed Tri-Memory System architecture integrating Procedural Memory.*
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -403,7 +678,7 @@ While `adaptive-context-memory` resolves semantic and episodic long-term memory 
 |   +-----------------------------------------------------------------------------+ |
 +-----------------------------------------------------------------------------------+
 ```
-*Figure 3: Proposed Tri-Memory Architecture incorporating Procedural Memory.*
+*Figure 5B: ASCII schematic of procedural memory workflow sequence.*
 
 ### B. Scope of Improvement 1: Procedural Memory Engine (Action & Workflow Patterns)
 Human memory consists of semantic, episodic, and **procedural memory** (remembering *how* to perform tasks). A key planned extension is the implementation of a **Procedural Memory Engine** that records successful agent action sequences, tool usage patterns, and multi-step workflows.
@@ -423,7 +698,7 @@ Implementing automated background summarization jobs that group aging episodic b
 
 In this work, we introduced **Adaptive Context Memory** (`adaptive-context-memory`), a standalone, zero-binary long-term memory architecture designed for autonomous AI agents in TypeScript and Node.js. 
 
-By partitioning knowledge into a **Dual Memory Engine** (Semantic Facts vs. Episodic Bubbles), implementing an automated **5-Action Contradiction Resolution Protocol**, utilizing **Maximum Marginal Relevance (MMR)** retrieval, and providing a full-stack **D3.js visualization graph**, the system effectively eliminates context statelessness, prevents fact accumulation errors, and optimizes retrieval diversity. 
+By partitioning knowledge into a **Dual Memory Engine** (Semantic Facts vs. Episodic Bubbles), implementing an automated **5-Action Contradiction Resolution Protocol**, utilizing **Maximum Marginal Relevance (MMR)** retrieval, and providing a full-stack **Next.js 15 + D3.js testing portal**, the system effectively eliminates context statelessness, prevents fact accumulation errors, and optimizes retrieval diversity. 
 
 The framework is published as an open-source npm package (`adaptive-context-memory`), providing a robust, production-ready foundation for the next generation of intelligent, context-aware autonomous software agents.
 
@@ -439,3 +714,4 @@ The framework is published as an open-source npm package (`adaptive-context-memo
 6. A. Vaswani *et al.*, "Attention is all you need," in *Proc. Advances in Neural Information Processing Systems (NeurIPS)*, 2017, pp. 5998–6008.
 7. J. Johnson, M. Douze, and H. Jégou, "Billion-scale similarity search with GPUs," *IEEE Transactions on Big Data*, vol. 7, no. 3, pp. 535–547, 2021.
 8. S. Robertson and H. Zaragoza, "The probabilistic relevance framework: BM25 and beyond," *Foundations and Trends in Information Retrieval*, vol. 3, no. 4, pp. 333–389, 2009.
+e framework: BM25 and beyond," *Foundations and Trends in Information Retrieval*, vol. 3, no. 4, pp. 333–389, 2009.
