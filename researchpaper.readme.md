@@ -102,11 +102,11 @@ Importance scoring for episodic bubbles and candidate memories is computed heuri
 $$I(m) = \text{Clamp}\left( I_{\text{base}}(\text{category}) + \Delta_{\text{keywords}}(\text{text}), 0.1, 1.0 \right)$$
 
 Where $I_{\text{base}}$ defaults to:
-* `health`, `dietary`: $0.90$
-* `goal`, `profile`: $0.85$
-* `professional`, `skill`: $0.75$
-* `preference`: $0.60$
-* `other`: $0.50$
+* `health`, `dietary`: `0.90`
+* `goal`, `profile`: `0.85`
+* `professional`, `skill`: `0.75`
+* `preference`: `0.60`
+* `other`: `0.50`
 
 $\Delta_{\text{keywords}}$ adds $+0.15$ for emergency tokens (e.g., *"deadline"*, *"bug"*, *"crash"*, *"urgent"*, *"critical"*).
 
@@ -255,7 +255,7 @@ sequenceDiagram
 ### E. Bidirectional Connection Graph for Episodic Bubbles
 When a new episodic bubble $b_{\text{new}}$ is saved, the `ConnectionFinder` executes a vector similarity search across existing episodic bubbles in the vector store. If cosine similarity $S_{\text{cosine}}(b_{\text{new}}, b_{\text{existing}}) \ge \tau_{\text{conn}} = 0.60$, a bidirectional connection edge is created in the JSON metadata fields of both records:
 
-$$\text{Metadata}(b_{\text{new}}).\text{connections}.\text{bubble\_ids} \leftarrow [b_1, b_2, \dots, b_k] \quad (k \le 5)$$
+$$\text{Metadata}(b_{\text{new}}).\text{connections.bubble\_ids} \leftarrow [b_1, b_2, \dots, b_k] \quad (k \le 5)$$
 
 During search retrieval, connected bubbles are automatically fetched to provide non-obvious relational context to the reasoning agent.
 
@@ -520,9 +520,9 @@ graph TB
 The web client utilizes **Next.js 15 App Router** and **Tailwind CSS** to render a dual-pane workspace:
 * **Interactive Chat Workspace:** Handles user prompt submissions, displays past turns, and renders real-time extracted memory badges attached to individual messages.
 * **D3.js Memory Graph Physics (`d3-force`):** Renders memory graph nodes and topological similarity links inside an SVG element.
-  * **Semantic Fact Nodes:** Colored Sapphire Blue ($\text{Hex } \#1\text{A}6\text{BC}4$) with circular node geometry.
-  * **Episodic Bubble Nodes:** Colored Emerald Green ($\text{Hex } \#00\text{E}596$) with pulsing temporal highlight rings.
-  * **Physics Constraints:** Applies charge repulsion forces ($F_{\text{repel}} = -300$), link distance constraints ($d = 80\text{px}$), drag listener handlers, and center gravity attraction to cluster related memories visually.
+  * **Semantic Fact Nodes:** Colored Sapphire Blue (Hex `#1A6BC4`) with circular node geometry.
+  * **Episodic Bubble Nodes:** Colored Emerald Green (Hex `#00E596`) with pulsing temporal highlight rings.
+  * **Physics Constraints:** Applies charge repulsion forces ($F_{\text{repel}} = -300$), link distance constraints ($d = 80\text{ px}$), drag listener handlers, and center gravity attraction to cluster related memories visually.
 
 ### D. Express Backend REST API Specification
 The backend service (`/server`) wraps the `ContextMemory` instance, providing clean REST endpoints detailed in Table III.
@@ -624,13 +624,13 @@ Evaluation benchmarks were conducted on an Intel Core i7 / Linux environment que
 
 | Evaluation Metric | Baseline Implementation (No Cache / Sequential) | **Adaptive Context Memory (Optimized)** | Improvement / Impact |
 | :--- | :--- | :--- | :--- |
-| **Vector Index Load Time** | $120\text{ ms}$ (Native C++ FAISS initialization) | **$< 1\text{ ms}$ (Pure JS Flat Store)** | **$> 99\%$ faster initialization** |
-| **Extraction & Storage Latency** | $1,850\text{ ms / turn}$ | **$620\text{ ms / turn}$** | **$66.4\%$ latency reduction** |
-| **Embedding API Call Count** | $350\text{ API calls}$ | **$48\text{ API calls}$ (Batch + LRU)** | **$86.2\%$ API call reduction** |
-| **LRU Cache Hit Rate (Multi-Session)** | $0\%$ | **$41.5\%$ Average Hit Rate** | **Direct cost savings** |
-| **Fast Pre-Dedup Skip Rate ($S \ge 0.95$)**| $0\%$ | **$28.2\%$ LLM calls skipped** | **$28.2\%$ reduction in tool-call costs** |
-| **Retrieved Context Redundancy** | $42.0\%$ redundant facts in Top-5 | **$0.0\%$ redundant facts (MMR $\lambda=0.6$)**| **$100\%$ unique contextual diversity** |
-| **SWR Cache Invalidation Latency** | Manual browser refresh required | **$< 8\text{ ms}$ Reactive Revalidation** | **Instant visual synchronization** |
+| **Vector Index Load Time** | `120 ms` (Native C++ FAISS initialization) | **`< 1 ms` (Pure JS Flat Store)** | **`> 99%` faster initialization** |
+| **Extraction & Storage Latency** | `1,850 ms / turn` | **`620 ms / turn`** | **`66.4%` latency reduction** |
+| **Embedding API Call Count** | `350 API calls` | **`48 API calls` (Batch + LRU)** | **`86.2%` API call reduction** |
+| **LRU Cache Hit Rate (Multi-Session)** | `0%` | **`41.5%` Average Hit Rate** | **Direct cost savings** |
+| **Fast Pre-Dedup Skip Rate ($S \ge 0.95$)**| `0%` | **`28.2%` LLM calls skipped** | **`28.2%` reduction in tool-call costs** |
+| **Retrieved Context Redundancy** | `42.0%` redundant facts in Top-5 | **`0.0%` redundant facts (MMR $\lambda = 0.6$)**| **`100%` unique contextual diversity** |
+| **SWR Cache Invalidation Latency** | Manual browser refresh required | **`< 8 ms` Reactive Revalidation** | **Instant visual synchronization** |
 
 ---
 
