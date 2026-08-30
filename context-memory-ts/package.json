@@ -1,0 +1,42 @@
+{
+  "name": "adaptive-context-memory",
+  "version": "1.0.1",
+  "description": "High-performance long-term adaptive memory system for AI agents in TypeScript & Node.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepack": "npm run build",
+    "dev": "tsx src/demo.ts",
+    "test": "tsx src/demo.ts",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "ai",
+    "memory",
+    "adaptive-memory",
+    "llm",
+    "openai",
+    "openrouter",
+    "context",
+    "long-term-memory",
+    "vector-store",
+    "rag",
+    "typescript"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^9.6.0",
+    "dotenv": "^16.4.5",
+    "openai": "^4.56.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.10",
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.4.5"
+  }
+}
